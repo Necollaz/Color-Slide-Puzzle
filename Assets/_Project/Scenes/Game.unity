@@ -494,8 +494,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _grid: {fileID: 1372056453}
-  _cellPrefab: {fileID: 6277259263391829340, guid: 61f44d2d353528448a1873dddc79413f, type: 3}
+  _cellPrefab: {fileID: -6355473103755356524, guid: a6bbfedc5d64abc469d638a3a472e45d, type: 3}
+  _stackPrefab: {fileID: 8826742491456949579, guid: 61f44d2d353528448a1873dddc79413f, type: 3}
   _gridDefinitionConfig: {fileID: 11400000, guid: e9316628b24e002449994bf0a91c9b85, type: 2}
+  _tileConfig: {fileID: 11400000, guid: bbe9057f6e0f3144cb4c177c5711d12d, type: 2}
 --- !u!1 &1499434786
 GameObject:
   m_ObjectHideFlags: 0
