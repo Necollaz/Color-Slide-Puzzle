@@ -28,6 +28,11 @@ public class TileConfig : ScriptableObject
     [SerializeField, Min(1)] private int _maxStackDistributionIterations = 64;
     [SerializeField, Min(1)] private int _maxColorsPerSpawnStack = 3;
     
+    [Header("Color blocks spawn weights (%)")]
+    [SerializeField, Range(0, 100)] private int _oneColorStackWeightPercent = 10;
+    [SerializeField, Range(0, 100)] private int _twoColorsStackWeightPercent = 60;
+    [SerializeField, Range(0, 100)] private int _threeColorsStackWeightPercent = 30;
+    
     [Header("Visual size relative to HexCell (field stacks)")]
     [SerializeField, Range(0.1f, 1f)] private float _xzScaleFactor = 0.9f;
     [SerializeField, Range(0.1f, 1f)] private float _stackHeight = 0.3f;
@@ -42,6 +47,12 @@ public class TileConfig : ScriptableObject
     [SerializeField, Min(0.001f)] private float _segmentHeight = 0.04f;
     [SerializeField, Min(0f)] private float _segmentGap = 0.005f;
 
+    [Header("Effects")]
+    [SerializeField] private ParticleSystem _tileClearEffectPrefab;
+    [SerializeField] private ParticleSystem _stackClearEffectPrefab;
+    [SerializeField, Min(0)] private int _tileClearEffectPrewarmCount = 20;
+    [SerializeField, Min(0)] private int _stackClearEffectPrewarmCount = 5;
+    
     public IReadOnlyList<Color> Colors => _colors;
 
     public int MaxStackSize => _maxStackSize;
@@ -61,6 +72,10 @@ public class TileConfig : ScriptableObject
     public int MaxStackDistributionIterations => _maxStackDistributionIterations;
     public int MaxColorsPerSpawnStack => _maxColorsPerSpawnStack;
 
+    public int OneColorStackWeightPercent => _oneColorStackWeightPercent;
+    public int TwoColorsStackWeightPercent => _twoColorsStackWeightPercent;
+    public int ThreeColorsStackWeightPercent => _threeColorsStackWeightPercent;
+    
     public float XzScaleFactor => _xzScaleFactor;
     public float YOffset => _yOffset;
     public float StackHeight => _stackHeight;
@@ -71,4 +86,9 @@ public class TileConfig : ScriptableObject
 
     public float SegmentHeight => _segmentHeight;
     public float SegmentGap => _segmentGap;
+    
+    public ParticleSystem TileClearEffectPrefab => _tileClearEffectPrefab;
+    public ParticleSystem StackClearEffectPrefab => _stackClearEffectPrefab;
+    public int TileClearEffectPrewarmCount => _tileClearEffectPrewarmCount;
+    public int StackClearEffectPrewarmCount => _stackClearEffectPrewarmCount;
 }

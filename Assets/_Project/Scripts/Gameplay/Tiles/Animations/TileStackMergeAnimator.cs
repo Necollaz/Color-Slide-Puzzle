@@ -23,15 +23,18 @@ public class TileStackMergeAnimator
     private readonly TileMergeSegmentPool _segmentPool;
     private readonly TileMergeColorApplier _colorApplier;
     private readonly TileMergePositionCalculator _positionCalculator;
+    private readonly TileEffectsPlayer _effectsPlayer;
 
     [Inject]
     public TileStackMergeAnimator(TileMergeSegmentTemplate template, TileMergeSegmentPool segmentPool,
-        TileMergeColorApplier colorApplier, TileMergePositionCalculator positionCalculator)
+        TileMergeColorApplier colorApplier, TileMergePositionCalculator positionCalculator,
+        TileEffectsPlayer effectsPlayer)
     {
         _template = template;
         _segmentPool = segmentPool;
         _colorApplier = colorApplier;
         _positionCalculator = positionCalculator;
+        _effectsPlayer = effectsPlayer;
     }
 
     public Sequence BuildMergeSequence(TileStackView sourceStack, TileStackView targetStack, Color color, int tilesCount,
@@ -168,10 +171,19 @@ public class TileStackMergeAnimator
             tileSequence.Append(scaleTween);
 
             FlyingSegment capturedSegment = segment;
+            Vector3 capturedPosition = tileWorldPosition;
 
             tileSequence.OnComplete(() =>
             {
                 stack.RemoveTilesOfColorFromBottom(color, 1);
+
+                _effectsPlayer?.PlayTileClearEffect(capturedPosition);
+
+                if (stack.IsEmpty)
+                {
+                    _effectsPlayer?.PlayStackClearEffect(capturedPosition);
+                }
+
                 _segmentPool.ReleaseSegment(capturedSegment);
             });
 

@@ -17,7 +17,6 @@ MonoBehaviour:
   - {r: 1, g: 0.121568635, b: 0.11764707, a: 0}
   - {r: 0.42352945, g: 0.95294124, b: 1, a: 0}
   - {r: 0.4433962, g: 0.4339845, b: 0.4245728, a: 0}
-  - {r: 0.9333334, g: 0.9607844, b: 0.9294118, a: 0}
   - {r: 0.96470594, g: 0.8117648, b: 0.23137257, a: 0}
   - {r: 0.73333335, g: 0.19607845, b: 1, a: 0}
   - {r: 0.20392159, g: 0.38823533, b: 0.9960785, a: 0}
@@ -30,8 +29,24 @@ MonoBehaviour:
   _maxColorBlocksPerStack: 3
   _maxColorPickAttempts: 8
   _minTilesPerColorBlock: 1
+  _minTilesPerColorSpawn: 3
+  _maxTilesPerColorSpawn: 9
+  _maxStackDistributionIterations: 64
+  _maxColorsPerSpawnStack: 3
+  _oneColorStackWeightPercent: 20
+  _twoColorsStackWeightPercent: 50
+  _threeColorsStackWeightPercent: 30
   _xzScaleFactor: 0.9
-  _yOffset: 0.09
   _stackHeight: 0.3
+  _yOffset: 0.09
+  _spawnXzWorldSize: 0.5
+  _spawnStackWorldHeight: 1
+  _spawnYOffset: 0.05
   _segmentHeight: 0.04
   _segmentGap: 0.005
+  _tileClearEffectPrefab: {fileID: 5261469481925748125, guid: 85cbfda97736f714681d4fc2844323b5,
+    type: 3}
+  _stackClearEffectPrefab: {fileID: 198327332609706768, guid: 98497c01c529a9445a0e927162dbfd51,
+    type: 3}
+  _tileClearEffectPrewarmCount: 20
+  _stackClearEffectPrewarmCount: 5

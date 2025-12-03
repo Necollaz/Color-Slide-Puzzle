@@ -34,9 +34,13 @@ public class TileColorRemainderSorter
             return DEFAULT_REMAINDER;
 
         int totalCount = _colorStatistics.GetColorCount(color);
+        
+        if (totalCount <= 0)
+            return maxStackThreshold + 1;
+
         int remainder = totalCount % maxStackThreshold;
 
-        if (remainder == 0 && totalCount > 0)
+        if (remainder == 0)
             return maxStackThreshold;
 
         return remainder;

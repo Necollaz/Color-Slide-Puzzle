@@ -167,7 +167,10 @@ public class TileStackMatchResolver
 
         fullSequence.OnComplete(() =>
         {
-            IsResolvingMatches = false;
+            bool hasMore = TryResolveGlobalWave();
+            
+            if (!hasMore)
+                IsResolvingMatches = false;
         });
         
         fullSequence.Play();

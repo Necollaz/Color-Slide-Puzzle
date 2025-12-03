@@ -51,6 +51,8 @@ public class GameplayInstaller : MonoInstaller
         Container.Bind<TileMergeColorApplier>().AsSingle();
         Container.Bind<TileMergePositionCalculator>().AsSingle();
 
+        Container.Bind<TileEffectsPlayer>().AsSingle();
+        
         Container.Bind<TileStackMatchResolver>().AsSingle();
         Container.Bind<TileStackMergeAnimator>().AsSingle();
 

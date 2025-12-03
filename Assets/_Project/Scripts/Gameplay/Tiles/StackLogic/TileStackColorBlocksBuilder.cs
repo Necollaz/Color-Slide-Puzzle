@@ -4,10 +4,6 @@ using Zenject;
 
 public class TileStackColorBlocksBuilder
 {
-    private const int ONE_COLOR_WEIGHT_PERCENT = 30;
-    private const int TWO_COLORS_WEIGHT_PERCENT = 60;
-    private const int THREE_COLORS_WEIGHT_PERCENT = 10;
-
     private const int MIN_DISTINCT_COLORS = 1;
     private const int FALLBACK_DISTINCT_COLORS = 2;
     private const int TRIPLE_DISTINCT_COLORS = 3;
@@ -111,11 +107,11 @@ public class TileStackColorBlocksBuilder
 
     private (int oneColorWeight, int twoColorsWeight, int threeColorsWeight) CalculateColorWeights(int effectiveMaxColors)
     {
-        int oneColorWeight = Mathf.Max(MIN_TOTAL_WEIGHT, ONE_COLOR_WEIGHT_PERCENT);
-        int twoColorsWeight = Mathf.Max(MIN_TOTAL_WEIGHT, TWO_COLORS_WEIGHT_PERCENT);
+        int oneColorWeight = Mathf.Max(MIN_TOTAL_WEIGHT, _config.OneColorStackWeightPercent);
+        int twoColorsWeight = Mathf.Max(MIN_TOTAL_WEIGHT, _config.TwoColorsStackWeightPercent);
         int threeColorsWeight = effectiveMaxColors >= MIN_EFFECTIVE_COLORS_FOR_THREE
-            ? Mathf.Max(MIN_TOTAL_WEIGHT, THREE_COLORS_WEIGHT_PERCENT) : MIN_TOTAL_WEIGHT;
-
+            ? Mathf.Max(MIN_TOTAL_WEIGHT, _config.ThreeColorsStackWeightPercent) : MIN_TOTAL_WEIGHT;
+        
         if (effectiveMaxColors == FALLBACK_DISTINCT_COLORS)
             threeColorsWeight = MIN_TOTAL_WEIGHT;
 

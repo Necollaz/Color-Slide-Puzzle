@@ -67,8 +67,5 @@ public class TileStackStackSizeCalculator
         segmentBaseLocalY = yOffsetLocal + segmentStepLocal * HALF_TILE_HEIGHT_FACTOR;
     }
 
-    private float SafeScaleComponent(float value)
-    {
-        return Mathf.Abs(value) < MIN_SCALE_EPSILON ? DEFAULT_SCALE_VALUE : value;
-    }
+    private float SafeScaleComponent(float value) => Mathf.Abs(value) < MIN_SCALE_EPSILON ? DEFAULT_SCALE_VALUE : value;
 }
