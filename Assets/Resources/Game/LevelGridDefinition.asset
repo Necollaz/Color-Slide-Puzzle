@@ -16,3 +16,4 @@ MonoBehaviour:
   _width: 4
   _height: 4
   _hexRadius: 2
+  _occupiedCellsCount: 14
