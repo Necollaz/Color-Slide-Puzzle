@@ -8,10 +8,12 @@ public class TileStackSegmentsPool
     private const int MIN_SEGMENTS_TO_PREWARM = 1;
 
     private readonly TileConfig _config;
+    private readonly ObjectPool<MeshRenderer> _segmentPool;
     private readonly MeshRenderer _rootRenderer;
-    private readonly List<MeshRenderer> _segments = new List<MeshRenderer>();
-
+    
     private readonly Vector3 _segmentLocalScale = Vector3.one;
+
+    private readonly List<MeshRenderer> _segments = new List<MeshRenderer>();
 
     public TileStackSegmentsPool(TileConfig config, MeshRenderer rootRenderer)
     {
@@ -23,6 +25,10 @@ public class TileStackSegmentsPool
             _segments.Add(_rootRenderer);
             _segmentLocalScale = _rootRenderer.transform.localScale;
         }
+
+        int initialCapacity = _config != null ? _config.MaxStackSize : 0;
+
+        _segmentPool = new ObjectPool<MeshRenderer>(CreateSegmentInstance, OnGetSegment, OnReleaseSegment, initialCapacity);
     }
 
     public IReadOnlyList<MeshRenderer> Segments => _segments;
@@ -88,24 +94,53 @@ public class TileStackSegmentsPool
 
         while (_segments.Count < requiredCount)
         {
-            GameObject segmentObject = Object.Instantiate(_rootRenderer.gameObject, parent);
-            segmentObject.name = SEGMENT_OBJECT_NAME;
+            MeshRenderer newSegment = _segmentPool.Get();
 
-            if (segmentObject.TryGetComponent(out TileStackView strayView))
-                strayView.enabled = false;
+            if (newSegment == null)
+                break;
 
-            if (segmentObject.TryGetComponent(out Collider strayCollider))
-                strayCollider.enabled = false;
+            if (newSegment.transform.parent != parent)
+                newSegment.transform.SetParent(parent, worldPositionStays: false);
 
-            if (!segmentObject.TryGetComponent(out MeshRenderer newSegmentRenderer))
-            {
-                segmentObject.SetActive(false);
-                
-                continue;
-            }
-
-            newSegmentRenderer.transform.localScale = _segmentLocalScale;
-            _segments.Add(newSegmentRenderer);
+            _segments.Add(newSegment);
         }
+    }
+
+    private MeshRenderer CreateSegmentInstance()
+    {
+        if (_rootRenderer == null)
+            return null;
+
+        Transform parent = _rootRenderer.transform.parent;
+
+        MeshRenderer newSegmentRenderer = Object.Instantiate(_rootRenderer, parent);
+        newSegmentRenderer.name = SEGMENT_OBJECT_NAME;
+
+        if (newSegmentRenderer.TryGetComponent(out TileStackView strayView))
+            strayView.enabled = false;
+
+        if (newSegmentRenderer.TryGetComponent(out Collider strayCollider))
+            strayCollider.enabled = false;
+
+        newSegmentRenderer.transform.localScale = _segmentLocalScale;
+
+        return newSegmentRenderer;
+    }
+
+    private void OnGetSegment(MeshRenderer segment)
+    {
+        if (segment == null)
+            return;
+
+        segment.transform.localScale = _segmentLocalScale;
+        segment.gameObject.SetActive(true);
+    }
+
+    private void OnReleaseSegment(MeshRenderer segment)
+    {
+        if (segment == null)
+            return;
+
+        segment.gameObject.SetActive(false);
     }
 }

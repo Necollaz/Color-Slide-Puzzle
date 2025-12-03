@@ -11,10 +11,10 @@ public class TileStackFactory
     private readonly TileStackView _cellStackPrefab;
     private readonly TileStackRoot _spawnStackRootPrefab;
     private readonly TileStackColorsGenerator _colorsGenerator;
-    private readonly GridCellsBuilder _cellsBuilder;
     private readonly TileSpawnMatchPlanner _spawnMatchPlanner;
     private readonly TileSpawnTopColorSelector _spawnTopColorSelector;
     private readonly TileColorStatistics _colorStatistics;
+    private readonly GridCellsBuilder _cellsBuilder;
     private readonly DiContainer _container;
     
     private readonly List<TileStackRoot> _spawnStackPool = new();
@@ -62,9 +62,15 @@ public class TileStackFactory
         if (cellView == null)
             return false;
         
-        TileStackView existingActiveStack = cellView.GetComponentInChildren<TileStackView>();
+        TileStackView existingStack = cellView.GetComponentInChildren<TileStackView>(true);
+
+        if (existingStack == null)
+            return false;
+
+        bool isActive = existingStack.gameObject.activeInHierarchy;
+        bool isEmpty = existingStack.IsEmpty;
         
-        return existingActiveStack != null && existingActiveStack.gameObject.activeSelf;
+        return isActive && !isEmpty;
     }
     
     public TileStackRoot CreateOrReuseSpawnStack(Transform parentTransform)

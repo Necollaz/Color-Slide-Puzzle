@@ -180,6 +180,9 @@ public class TileStackDragInput : MonoBehaviour, GameplayInputActions.IGameplayA
         if (_activeDraggableStack != null)
             return;
 
+        if (_matchResolver != null && _matchResolver.IsResolvingMatches)
+            return;
+        
         if (!RaycastForStack(_currentPointerPosition, out TileStackDraggable draggable))
             return;
 
@@ -187,7 +190,6 @@ public class TileStackDragInput : MonoBehaviour, GameplayInputActions.IGameplayA
             return;
 
         _activeDraggableStack = draggable;
-
         Vector3 worldPosition = GetWorldPointOnGround(_currentPointerPosition);
         _activeDraggableStack.BeginDrag(worldPosition);
     }

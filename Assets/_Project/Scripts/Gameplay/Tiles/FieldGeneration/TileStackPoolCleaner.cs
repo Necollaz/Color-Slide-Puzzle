@@ -3,29 +3,40 @@ using UnityEngine;
 
 public class TileStackPoolCleaner
 {
-    private readonly List<TileStackRoot> _stackBuffer = new();
+    private readonly ObjectPool<List<TileStackRoot>> _stackBufferPool;
+
+    public TileStackPoolCleaner()
+    {
+        _stackBufferPool = new ObjectPool<List<TileStackRoot>>(() => new List<TileStackRoot>(), 
+            buffer => buffer.Clear(),
+            buffer => buffer.Clear());
+    }
 
     public void DeactivateStacks(IReadOnlyDictionary<Vector2Int, HexCellView> cellViewsByCoordinates)
     {
+        if (cellViewsByCoordinates == null || cellViewsByCoordinates.Count == 0)
+            return;
+
         foreach (HexCellView cellView in cellViewsByCoordinates.Values)
         {
             if (cellView == null)
                 continue;
 
-            _stackBuffer.Clear();
-            cellView.GetComponentsInChildren(true, _stackBuffer);
+            List<TileStackRoot> stackBuffer = _stackBufferPool.Get();
 
-            for (int index = 0; index < _stackBuffer.Count; index++)
+            cellView.GetComponentsInChildren(true, stackBuffer);
+
+            for (int index = 0; index < stackBuffer.Count; index++)
             {
-                TileStackRoot stackRoot = _stackBuffer[index];
-                
+                TileStackRoot stackRoot = stackBuffer[index];
+
                 if (stackRoot == null)
                     continue;
 
                 stackRoot.gameObject.SetActive(false);
             }
-        }
 
-        _stackBuffer.Clear();
+            _stackBufferPool.Release(stackBuffer);
+        }
     }
 }

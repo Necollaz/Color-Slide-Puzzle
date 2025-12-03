@@ -7,8 +7,7 @@ public class TileStackView : MonoBehaviour
     [SerializeField] private MeshRenderer _renderer;
 
     private TileConfig _config;
-    private TileStackSegmentsModel _model;
-    private TileStackSegmentsVisual _visual;
+    private TileStackRuntime _runtime;
 
     [Inject]
     public void Construct(TileConfig config)
@@ -16,123 +15,70 @@ public class TileStackView : MonoBehaviour
         _config = config;
     }
 
-    public bool IsEmpty => _model == null || _model.IsEmpty;
+    public bool IsEmpty => _runtime == null || _runtime.IsEmpty;
+    public int TilesCount => _runtime == null ? 0 : _runtime.TilesCount;
 
     private void Awake()
     {
         if (_renderer == null)
             _renderer = GetComponentInChildren<MeshRenderer>();
+
+        if (_renderer != null && _config != null)
+            _runtime = new TileStackRuntime(_config, _renderer, transform);
     }
 
-    public int ExtractAllTilesOfColor(Color color)
+    public int CountTopTilesOfColor(Color color) => _runtime == null ? 0 : _runtime.CountTopTilesOfColor(color);
+
+    public int RemoveTopTiles(int count) => _runtime == null ? 0 : _runtime.RemoveTopTiles(count);
+
+    public int RemoveTilesOfColorFromBottom(Color color, int count) => _runtime == null ? 0
+        : _runtime.RemoveTilesOfColorFromBottom(color, count);
+
+    public bool TryGetBottomColorIndex(Color color, out int indexFromBottom)
     {
-        EnsureCoreInitialized();
-
-        if (_model == null || _visual == null)
-            return 0;
-        
-        int removedCount = _model.ExtractAllTilesOfColor(color);
-
-        if (removedCount > 0)
+        if (_runtime == null)
         {
-            if (_model.IsEmpty)
-                gameObject.SetActive(false);
-            else
-                _visual.RebuildVisualStack(_model.SegmentColors, transform);
-        }
-
-        return removedCount;
-    }
-
-    public bool TryGetTopColor(out Color color)
-    {
-        EnsureCoreInitialized();
-
-        if (_model == null)
-        {
-            color = default;
+            indexFromBottom = -1;
             
             return false;
         }
 
-        bool result = _model.TryGetTopColor(out color);
-
-        return result;
+        return _runtime.TryGetBottomColorIndex(color, out indexFromBottom);
     }
-    
+
+    public bool TryGetTopColor(out Color color)
+    {
+        color = default;
+
+        if (_runtime == null)
+            return false;
+
+        return _runtime.TryGetTopColor(out color);
+    }
+
+    public bool TryGetCompletedColor(out Color color, out int completedCount)
+    {
+        color = default;
+        completedCount = 0;
+
+        if (_runtime == null)
+            return false;
+
+        return _runtime.TryGetCompletedColor(out color, out completedCount);
+    }
+
     public void Initialize(IReadOnlyList<Color> segmentColors)
     {
-        EnsureCoreInitialized();
-
-        if (_model == null || _visual == null)
+        if (_runtime == null)
             return;
 
-        _model.Initialize(segmentColors);
-        _visual.ApplyStackSize(transform);
-        _visual.RebuildVisualStack(_model.SegmentColors, transform);
-
-        gameObject.SetActive(!_model.IsEmpty);
-    }
-    
-    public void AddTilesOnTop(Color color, int count)
-    {
-        EnsureCoreInitialized();
-
-        if (_model == null || _visual == null)
-            return;
-
-        if (count <= 0)
-            return;
-
-        _model.AddTilesOnTop(color, count);
-
-        if (_model.IsEmpty)
-        {
-            gameObject.SetActive(false);
-            
-            return;
-        }
-
-        _visual.RebuildVisualStack(_model.SegmentColors, transform);
+        _runtime.Initialize(segmentColors);
     }
 
-    public void ForceTopColor(Color color)
-    {
-        EnsureCoreInitialized();
+    public void AddTilesOnTop(Color color, int count) => _runtime?.AddTilesOnTop(color, count);
 
-        if (_model == null || _visual == null)
-            return;
+    public void ForceTopColor(Color color) => _runtime?.ForceTopColor(color);
 
-        _model.ForceTopColor(color);
-
-        if (_model.IsEmpty)
-            gameObject.SetActive(false);
-        else
-            _visual.RebuildVisualStack(_model.SegmentColors, transform);
-    }
-
-    public void AppendColorsToDictionary(Dictionary<Color, int> colorCounts)
-    {
-        EnsureCoreInitialized();
-
-        if (_model == null)
-            return;
-
-        _model.AppendColorsToDictionary(colorCounts);
-    }
-    
-    private void EnsureCoreInitialized()
-    {
-        if (_model != null && _visual != null)
-            return;
-
-        if (_config == null)
-            return;
-
-        if (_renderer == null)
-            _renderer = GetComponentInChildren<MeshRenderer>();
-
-        _model = new TileStackSegmentsModel(_config);
-        _visual = new TileStackSegmentsVisual(_config, _renderer);
-    }
+    public void AppendColorsToDictionary(Dictionary<Color, int> colorCounts) =>
+        _runtime?.AppendColorsToDictionary(colorCounts);
 }

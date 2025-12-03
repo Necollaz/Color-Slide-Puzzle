@@ -3,16 +3,11 @@ using UnityEngine;
 
 public class TileStackSegmentsVisual
 {
-    private const string TILE_BASE_COLOR_NAME = "_BaseColor";
-    private const string TILE_COLOR_NAME = "_Color";
-
     private readonly TileConfig _config;
     private readonly TileStackStackSizeCalculator _sizeCalculator;
     private readonly TileStackSegmentsPool _segmentsPool;
+    private readonly TileShaderPropertyIds _shaderPropertyIds;
     private readonly MaterialPropertyBlock _propertyBlock;
-
-    private readonly int _baseColorId;
-    private readonly int _colorId;
 
     private float _segmentStepLocal = 1.0f;
     private float _segmentBaseLocalY = 0.0f;
@@ -21,14 +16,11 @@ public class TileStackSegmentsVisual
     public TileStackSegmentsVisual(TileConfig config, MeshRenderer rootRenderer)
     {
         _config = config;
-
+        
+        _shaderPropertyIds = new TileShaderPropertyIds();
         _segmentsPool = new TileStackSegmentsPool(config, rootRenderer);
         _sizeCalculator = new TileStackStackSizeCalculator(config, rootRenderer);
-
         _propertyBlock = new MaterialPropertyBlock();
-
-        _baseColorId = Shader.PropertyToID(TILE_BASE_COLOR_NAME);
-        _colorId = Shader.PropertyToID(TILE_COLOR_NAME);
 
         if (rootRenderer != null && _config != null)
             _segmentsPool.PrewarmSegments();
@@ -99,10 +91,10 @@ public class TileStackSegmentsVisual
 
             _propertyBlock.Clear();
 
-            if (tileMaterial.HasProperty(_baseColorId))
-                _propertyBlock.SetColor(_baseColorId, segmentColor);
-            else if (tileMaterial.HasProperty(_colorId))
-                _propertyBlock.SetColor(_colorId, segmentColor);
+            if (tileMaterial.HasProperty(_shaderPropertyIds.BaseColorId))
+                _propertyBlock.SetColor(_shaderPropertyIds.BaseColorId, segmentColor);
+            else if (tileMaterial.HasProperty(_shaderPropertyIds.ColorId))
+                _propertyBlock.SetColor(_shaderPropertyIds.ColorId, segmentColor);
 
             segment.SetPropertyBlock(_propertyBlock);
         }

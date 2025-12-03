@@ -1,35 +1,42 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
+using DG.Tweening;
 
 public class TileStackMatchResolver
 {
-    private const int MIN_MATCH_GROUP_SIZE = 2;
-    
-    private readonly Grid _grid;
     private readonly GridCellsBuilder _cellsBuilder;
-    private readonly GridNeighborOffsetProvider _gridNeighborOffset;
-    
-    private readonly HashSet<HexCellView> _visitedCells = new HashSet<HexCellView>();
-    private readonly List<List<HexCellView>> _foundGroups = new List<List<HexCellView>>();
-    private readonly Queue<HexCellView> _bfsQueue = new Queue<HexCellView>();
-    private readonly List<List<HexCellView>> _groupPool = new List<List<HexCellView>>();
+    private readonly TileStackMergeAnimator _mergeAnimator;
+    private readonly TileStackInCellFinder _stackFinder;
+    private readonly TileMatchGroupFinder _groupFinder;
+    private readonly TileGroupTransferPlanner _transferPlanner;
 
     [Inject]
-    public TileStackMatchResolver(Grid grid, GridCellsBuilder cellsBuilder, GridNeighborOffsetProvider gridNeighborOffset)
+    public TileStackMatchResolver(GridCellsBuilder cellsBuilder, TileStackMergeAnimator mergeAnimator,
+        TileStackInCellFinder stackFinder, TileMatchGroupFinder groupFinder, TileGroupTransferPlanner transferPlanner)
     {
-        _grid = grid;
         _cellsBuilder = cellsBuilder;
-        _gridNeighborOffset = gridNeighborOffset;
+        _mergeAnimator = mergeAnimator;
+        _stackFinder = stackFinder;
+        _groupFinder = groupFinder;
+        _transferPlanner = transferPlanner;
     }
+    
+    public bool IsResolvingMatches { get; private set; }
 
     public void ResolveMatchesFromCell()
     {
-        while (TryResolveGlobalWave())
-        {
-        }
+        if (IsResolvingMatches)
+            return;
+
+        IsResolvingMatches = true;
+
+        bool hasAnimations = TryResolveGlobalWave();
+        
+        if (!hasAnimations)
+            IsResolvingMatches = false;
     }
-    
+
     private bool TryResolveGlobalWave()
     {
         IReadOnlyDictionary<Vector2Int, HexCellView> cells = _cellsBuilder.Cells;
@@ -37,127 +44,157 @@ public class TileStackMatchResolver
         if (cells == null || cells.Count == 0)
             return false;
 
-        Vector2Int[] neighborOffsets = _gridNeighborOffset.GetNeighborOffsets(_grid);
+        _groupFinder.FindTopColorGroups();
+        
+        IReadOnlyList<List<HexCellView>> groups = _groupFinder.FoundGroups;
 
-        _visitedCells.Clear();
-        _foundGroups.Clear();
+        if (groups.Count == 0)
+        {
+            bool hasClearAnimations = TryPlayCompletedStacksClearAnimation(cells);
+            
+            return hasClearAnimations;
+        }
+
+        Sequence fullSequence = DOTween.Sequence();
+        bool hasAnyAnimations = false;
+
+        for (int groupIndex = 0; groupIndex < groups.Count; groupIndex++)
+        {
+            List<HexCellView> group = groups[groupIndex];
+
+            if (!TryGetGroupTopColor(group, out Color groupColor))
+                continue;
+
+            Sequence groupSequence = DOTween.Sequence();
+            bool groupHasTransfers = false;
+
+            foreach ((TileStackView sourceStack, TileStackView targetStack, int chainStepIndex) 
+                     in _transferPlanner.BuildTransferSteps(group, groupColor))
+            {
+                int movableCount = sourceStack.CountTopTilesOfColor(groupColor);
+
+                if (movableCount <= 0)
+                    continue;
+
+                groupHasTransfers = true;
+
+                if (_mergeAnimator != null)
+                {
+                    TileStackView capturedSource = sourceStack;
+                    TileStackView capturedTarget = targetStack;
+                    Color capturedColor = groupColor;
+
+                    Sequence mergeSeq = _mergeAnimator.BuildMergeSequence(capturedSource, capturedTarget, capturedColor,
+                        movableCount, chainStepIndex, () =>
+                        {
+                            capturedSource.RemoveTopTiles(1);
+                            capturedTarget.AddTilesOnTop(capturedColor, 1);
+                        });
+
+                    if (mergeSeq != null)
+                    {
+                        groupSequence.Append(mergeSeq);
+                        
+                        hasAnyAnimations = true;
+                    }
+                }
+                else
+                {
+                    sourceStack.RemoveTopTiles(movableCount);
+                    targetStack.AddTilesOnTop(groupColor, movableCount);
+                }
+            }
+
+            if (groupHasTransfers && _mergeAnimator != null)
+                fullSequence.Append(groupSequence);
+        }
+
+        _groupFinder.ReleaseGroups();
+
+        if (hasAnyAnimations)
+        {
+            fullSequence.OnComplete(() =>
+            {
+                bool hasMore = TryResolveGlobalWave();
+
+                if (!hasMore)
+                    IsResolvingMatches = false;
+            });
+
+            fullSequence.Play();
+        }
+
+        return hasAnyAnimations;
+    }
+
+    private bool TryPlayCompletedStacksClearAnimation(IReadOnlyDictionary<Vector2Int, HexCellView> cells)
+    {
+        if (_mergeAnimator == null || cells == null || cells.Count == 0)
+            return false;
+
+        Sequence fullSequence = DOTween.Sequence();
+        bool hasAny = false;
 
         foreach (KeyValuePair<Vector2Int, HexCellView> pair in cells)
         {
             HexCellView cell = pair.Value;
 
-            if (cell == null || _visitedCells.Contains(cell))
+            if (cell == null)
                 continue;
 
-            TileStackView stack = cell.GetComponentInChildren<TileStackView>();
+            TileStackView stack = _stackFinder.FindActiveStackInCell(cell);
 
-            if (stack == null || !stack.TryGetTopColor(out Color topColor))
-            {
-                _visitedCells.Add(cell);
-                
+            if (stack == null)
                 continue;
-            }
 
-            List<HexCellView> group = GetGroupFromPool();
-            group.Clear();
+            if (!stack.TryGetCompletedColor(out Color color, out int completedCount))
+                continue;
 
-            _bfsQueue.Clear();
-            _bfsQueue.Enqueue(cell);
-            _visitedCells.Add(cell);
+            if (completedCount <= 0)
+                continue;
 
-            while (_bfsQueue.Count > 0)
-            {
-                HexCellView currentCellView = _bfsQueue.Dequeue();
-                group.Add(currentCellView);
+            Sequence clearSeq = _mergeAnimator.BuildClearCompletedStackSequence(stack, color, completedCount);
 
-                Vector2Int currentCoordinates = currentCellView.Coordinates;
+            if (clearSeq == null)
+                continue;
 
-                for (int i = 0; i < neighborOffsets.Length; i++)
-                {
-                    Vector2Int nextCoordinates = currentCoordinates + neighborOffsets[i];
-
-                    if (!cells.TryGetValue(nextCoordinates, out HexCellView neighborCell))
-                        continue;
-
-                    if (neighborCell == null || _visitedCells.Contains(neighborCell))
-                        continue;
-
-                    TileStackView neighborStack = neighborCell.GetComponentInChildren<TileStackView>();
-
-                    if (neighborStack == null || !neighborStack.TryGetTopColor(out Color neighborTopColor))
-                        continue;
-
-                    if (neighborTopColor != topColor)
-                        continue;
-
-                    _visitedCells.Add(neighborCell);
-                    _bfsQueue.Enqueue(neighborCell);
-                }
-            }
-
-            if (group.Count >= MIN_MATCH_GROUP_SIZE)
-                _foundGroups.Add(group);
-            else
-                ReturnGroupToPool(group);
+            fullSequence.Join(clearSeq);
+            hasAny = true;
         }
 
-        if (_foundGroups.Count == 0)
+        if (!hasAny)
             return false;
-        
-        for (int groupIndex = 0; groupIndex < _foundGroups.Count; groupIndex++)
+
+        fullSequence.OnComplete(() =>
         {
-            List<HexCellView> group = _foundGroups[groupIndex];
-
-            TileStackView targetStack = group[0].GetComponentInChildren<TileStackView>();
-
-            if (targetStack == null)
-                continue;
-
-            if (!targetStack.TryGetTopColor(out Color groupColor))
-                continue;
-
-            int collected = 0;
-
-            for (int i = 1; i < group.Count; i++)
-            {
-                TileStackView stackView = group[i].GetComponentInChildren<TileStackView>();
-
-                if (stackView == null)
-                    continue;
-
-                collected += stackView.ExtractAllTilesOfColor(groupColor);
-            }
-
-            if (collected > 0)
-                targetStack.AddTilesOnTop(groupColor, collected);
-        }
+            IsResolvingMatches = false;
+        });
         
-        for (int i = 0; i < _foundGroups.Count; i++)
-            ReturnGroupToPool(_foundGroups[i]);
-
-        _foundGroups.Clear();
+        fullSequence.Play();
 
         return true;
     }
 
-    private List<HexCellView> GetGroupFromPool()
+    private bool TryGetGroupTopColor(List<HexCellView> group, out Color color)
     {
-        if (_groupPool.Count == 0)
-            return new List<HexCellView>();
+        color = default;
 
-        int lastIndex = _groupPool.Count - 1;
-        List<HexCellView> group = _groupPool[lastIndex];
-        _groupPool.RemoveAt(lastIndex);
+        if (group == null || group.Count == 0)
+            return false;
 
-        return group;
-    }
+        for (int i = 0; i < group.Count; i++)
+        {
+            HexCellView cell = group[i];
 
-    private void ReturnGroupToPool(List<HexCellView> group)
-    {
-        if (group == null)
-            return;
+            TileStackView stack = _stackFinder.FindActiveStackInCell(cell);
 
-        group.Clear();
-        _groupPool.Add(group);
+            if (stack == null)
+                continue;
+
+            if (stack.TryGetTopColor(out color))
+                return true;
+        }
+
+        return false;
     }
 }
