@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 
 public class TileStackClusterBuilder
 {
@@ -13,12 +12,11 @@ public class TileStackClusterBuilder
     private readonly TileStackPoolCleaner _poolCleaner;
     private readonly GridNeighborOffsetProvider _gridNeighborOffset;
     private readonly ListRandomizer _randomizer;
-    
-    private readonly List<Vector2Int> _neighborOffsetsBuffer = new();
-    private readonly List<Vector2Int> _freeCoordinatesBuffer = new();
-    private readonly Queue<Vector2Int> _coordinatesQueue = new();
 
-    [Inject]
+    private readonly List<Vector2Int> _neighborOffsetsBuffer = new List<Vector2Int>();
+    private readonly List<Vector2Int> _freeCoordinatesBuffer = new List<Vector2Int>();
+    private readonly Queue<Vector2Int> _coordinatesQueue = new Queue<Vector2Int>();
+    
     public TileStackClusterBuilder(Grid grid, TileStackFactory stackFactory, TileStackPoolCleaner poolCleaner, 
         TileConfig config, GridNeighborOffsetProvider gridNeighborOffset, ListRandomizer randomizer)
     {
@@ -144,8 +142,11 @@ public class TileStackClusterBuilder
         
         int currentOccupiedCellCount = 0;
 
-        foreach ((Vector2Int coordinates, HexCellView cellView) in cellViewsByCoordinates)
+        foreach (KeyValuePair<Vector2Int, HexCellView> pair in cellViewsByCoordinates)
         {
+            Vector2Int coordinates = pair.Key;
+            HexCellView cellView = pair.Value;
+            
             if (cellView == null)
                 continue;
 

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 using DG.Tweening;
 
 public class TileStackMatchResolver
@@ -10,8 +9,7 @@ public class TileStackMatchResolver
     private readonly TileStackInCellFinder _stackFinder;
     private readonly TileMatchGroupFinder _groupFinder;
     private readonly TileGroupTransferPlanner _transferPlanner;
-
-    [Inject]
+    
     public TileStackMatchResolver(GridCellsBuilder cellsBuilder, TileStackMergeAnimator mergeAnimator,
         TileStackInCellFinder stackFinder, TileMatchGroupFinder groupFinder, TileGroupTransferPlanner transferPlanner)
     {
@@ -68,11 +66,14 @@ public class TileStackMatchResolver
             Sequence groupSequence = DOTween.Sequence();
             bool groupHasTransfers = false;
 
-            foreach ((TileStackView sourceStack, TileStackView targetStack, int chainStepIndex) 
-                     in _transferPlanner.BuildTransferSteps(group, groupColor))
+            foreach (TileTransferStep step in _transferPlanner.BuildTransferSteps(group, groupColor))
             {
-                int movableCount = sourceStack.CountTopTilesOfColor(groupColor);
+                TileStackView sourceStack = step.Source;
+                TileStackView targetStack = step.Target;
+                int chainStepIndex = step.ChainStepIndex;
 
+                int movableCount = sourceStack.CountTopTilesOfColor(groupColor);
+                
                 if (movableCount <= 0)
                     continue;
 
@@ -94,7 +95,6 @@ public class TileStackMatchResolver
                     if (mergeSeq != null)
                     {
                         groupSequence.Append(mergeSeq);
-                        
                         hasAnyAnimations = true;
                     }
                 }

@@ -1,14 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 
 public class TileColorRemainderSorter
 {
     private const int DEFAULT_REMAINDER = 0;
 
     private readonly TileColorStatistics _colorStatistics;
-
-    [Inject]
+    
     public TileColorRemainderSorter(TileColorStatistics colorStatistics)
     {
         _colorStatistics = colorStatistics;

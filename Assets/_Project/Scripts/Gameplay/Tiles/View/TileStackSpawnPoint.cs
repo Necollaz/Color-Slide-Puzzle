@@ -1,5 +1,4 @@
 using UnityEngine;
-using Zenject;
 
 public class TileStackSpawnPoint : MonoBehaviour
 {
@@ -7,8 +6,7 @@ public class TileStackSpawnPoint : MonoBehaviour
 
     private TileStackFactory _tileStackFactory;
     private TileStackRoot _currentStackRoot;
-
-    [Inject]
+    
     public void Construct(TileStackFactory tileStackFactory)
     {
         _tileStackFactory = tileStackFactory;

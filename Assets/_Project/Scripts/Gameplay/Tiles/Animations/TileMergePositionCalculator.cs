@@ -1,5 +1,4 @@
 using UnityEngine;
-using Zenject;
 
 public class TileMergePositionCalculator
 {
@@ -10,8 +9,7 @@ public class TileMergePositionCalculator
 
     private readonly TileConfig _tileConfig;
     private readonly TileMergeSegmentTemplate _template;
-
-    [Inject]
+    
     public TileMergePositionCalculator(TileConfig tileConfig, TileMergeSegmentTemplate template)
     {
         _tileConfig = tileConfig;
@@ -56,14 +54,6 @@ public class TileMergePositionCalculator
         Transform rootParent = _template.RootParent;
         Vector3 parentWorldScale = rootParent != null ? rootParent.lossyScale : Vector3.one;
 
-        float SafeDiv(float value, float divider)
-        {
-            if (Mathf.Abs(divider) < MIN_SCALE_EPSILON)
-                return value;
-
-            return value / divider;
-        }
-
         Vector3 localScale;
         localScale.x = SafeDiv(targetWorldScale.x, parentWorldScale.x);
         localScale.y = SafeDiv(targetWorldScale.y, parentWorldScale.y);
@@ -81,5 +71,13 @@ public class TileMergePositionCalculator
         float length = Random.Range(ZERO_RADIUS, radius);
 
         return new Vector3(Mathf.Cos(angle) * length, 0.0f, Mathf.Sin(angle) * length);
+    }
+    
+    private float SafeDiv(float value, float divider)
+    {
+        if (Mathf.Abs(divider) < MIN_SCALE_EPSILON)
+            return value;
+        
+        return value / divider;
     }
 }

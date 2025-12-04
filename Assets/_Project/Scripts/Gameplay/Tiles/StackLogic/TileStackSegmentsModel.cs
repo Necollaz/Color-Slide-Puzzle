@@ -119,12 +119,13 @@ public class TileStackSegmentsModel
 
         for (int i = 0; i < _segmentColors.Count; i++)
         {
-            Color c = _segmentColors[i];
-
-            if (_colorCounts.TryGetValue(c, out int count))
-                _colorCounts[c] = count + 1;
+            Color segmentColor = _segmentColors[i];
+            int count;
+            
+            if (_colorCounts.TryGetValue(segmentColor, out count))
+                _colorCounts[segmentColor] = count + 1;
             else
-                _colorCounts[c] = 1;
+                _colorCounts[segmentColor] = 1;
         }
 
         Color bestColor = default;
@@ -191,8 +192,9 @@ public class TileStackSegmentsModel
         for (int i = 0; i < _segmentColors.Count; i++)
         {
             Color color = _segmentColors[i];
-
-            if (colorCounts.TryGetValue(color, out int existing))
+            int existing;
+                
+            if (colorCounts.TryGetValue(color, out existing))
                 colorCounts[color] = existing + 1;
             else
                 colorCounts[color] = 1;

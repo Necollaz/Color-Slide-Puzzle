@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 
 public class TileStackFieldGenerator
 {
@@ -13,7 +12,6 @@ public class TileStackFieldGenerator
     private readonly HashSet<Color> _forbiddenColors = new HashSet<Color>();
     private readonly List<Color> _candidateColors = new List<Color>();
     
-    [Inject]
     public TileStackFieldGenerator(TileEmptyCellSelector emptyCellSelector, TileStackClusterBuilder clusterBuilder,
         Grid grid, TileConfig tileConfig, GridNeighborOffsetProvider gridNeighborOffset)
     {

@@ -1,5 +1,4 @@
 using UnityEngine;
-using Zenject;
 using DG.Tweening;
 
 public class TileMergeSegmentPool
@@ -8,8 +7,7 @@ public class TileMergeSegmentPool
     
     private readonly TileMergeSegmentTemplate _template;
     private readonly ObjectPool<FlyingSegment> _pool;
-
-    [Inject]
+    
     public TileMergeSegmentPool(TileMergeSegmentTemplate template)
     {
         _template = template;

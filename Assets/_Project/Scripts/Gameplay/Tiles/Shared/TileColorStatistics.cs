@@ -1,14 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 
 public class TileColorStatistics
 {
     private readonly GridCellsBuilder _cellsBuilder;
 
     private readonly Dictionary<Color, int> _colorCounts = new Dictionary<Color, int>();
-
-    [Inject]
+    
     public TileColorStatistics(GridCellsBuilder cellsBuilder)
     {
         _cellsBuilder = cellsBuilder;
@@ -39,7 +37,9 @@ public class TileColorStatistics
     
     public int GetColorCount(Color color)
     {
-        if (_colorCounts.TryGetValue(color, out int count))
+        int count;
+            
+        if (_colorCounts.TryGetValue(color, out count))
             return count;
 
         return 0;

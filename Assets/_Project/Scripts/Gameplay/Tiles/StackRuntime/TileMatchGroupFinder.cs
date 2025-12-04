@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 
 public class TileMatchGroupFinder
 {
@@ -15,8 +14,7 @@ public class TileMatchGroupFinder
     private readonly Queue<HexCellView> _bfsQueue = new Queue<HexCellView>();
     private readonly List<List<HexCellView>> _foundGroups = new List<List<HexCellView>>();
     private readonly List<List<HexCellView>> _groupPool = new List<List<HexCellView>>();
-
-    [Inject]
+    
     public TileMatchGroupFinder(Grid grid, GridCellsBuilder cellsBuilder, GridNeighborOffsetProvider gridNeighborOffset,
         TileStackInCellFinder stackFinder)
     {

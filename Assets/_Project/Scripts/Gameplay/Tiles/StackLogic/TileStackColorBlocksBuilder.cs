@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 
 public class TileStackColorBlocksBuilder
 {
@@ -20,9 +19,8 @@ public class TileStackColorBlocksBuilder
     private readonly TileConfig _config;
     private readonly ListRandomizer _randomizer;
     
-    private readonly List<(Color color, int count)> _colorBlocksBuffer = new();
-
-    [Inject]
+    private readonly List<TileColorBlock> _colorBlocksBuffer = new List<TileColorBlock>();
+    
     public TileStackColorBlocksBuilder(TileConfig config, ListRandomizer randomizer)
     {
         _config = config;
@@ -89,7 +87,7 @@ public class TileStackColorBlocksBuilder
             
             remainingColors--;
 
-            _colorBlocksBuffer.Add((color, tilesForThisColor));
+            _colorBlocksBuffer.Add(new TileColorBlock(color, tilesForThisColor));
         }
 
         DistributeRemainingTiles(remainingTiles, maxTilesPerColor, _colorBlocksBuffer);
@@ -98,10 +96,10 @@ public class TileStackColorBlocksBuilder
 
         for (int i = 0; i < _colorBlocksBuffer.Count; i++)
         {
-            (Color color, int tilesCount) block = _colorBlocksBuffer[i];
-
-            for (int j = 0; j < block.tilesCount; j++)
-                output.Add(block.color);
+            TileColorBlock block = _colorBlocksBuffer[i];
+            
+            for (int j = 0; j < block.Count; j++)
+                output.Add(block.Color);
         }
     }
 
@@ -168,32 +166,31 @@ public class TileStackColorBlocksBuilder
         return tilesForThisColor;
     }
     
-    private void DistributeRemainingTiles(int remainingTiles, int maxTilesPerColor, 
-        List<(Color color, int count)> colorBlocks)
+    private void DistributeRemainingTiles(int remainingTiles, int maxTilesPerColor, List<TileColorBlock> colorBlocks)
     {
         int iterationsLeft = _config.MaxStackDistributionIterations;
 
-        while (remainingTiles > MIN_TOTAL_WEIGHT  && iterationsLeft > MIN_TOTAL_WEIGHT )
+        while (remainingTiles > MIN_TOTAL_WEIGHT && iterationsLeft > MIN_TOTAL_WEIGHT)
         {
             iterationsLeft--;
 
             bool addedAny = false;
 
-            for (int index = 0; index < colorBlocks.Count && remainingTiles > MIN_TOTAL_WEIGHT ; index++)
+            for (int index = 0; index < colorBlocks.Count && remainingTiles > MIN_TOTAL_WEIGHT; index++)
             {
-                (Color color, int count) block = colorBlocks[index];
+                TileColorBlock block = colorBlocks[index];
 
-                int canTake = maxTilesPerColor - block.count;
-
-                if (canTake <= MIN_TOTAL_WEIGHT )
+                int canTake = maxTilesPerColor - block.Count;
+                
+                if (canTake <= MIN_TOTAL_WEIGHT)
                     continue;
 
                 int add = Mathf.Min(canTake, remainingTiles);
-
-                if (add <= MIN_TOTAL_WEIGHT )
+                
+                if (add <= MIN_TOTAL_WEIGHT)
                     continue;
 
-                block.count += add;
+                block.Count += add;
                 remainingTiles -= add;
                 colorBlocks[index] = block;
                 addedAny = true;

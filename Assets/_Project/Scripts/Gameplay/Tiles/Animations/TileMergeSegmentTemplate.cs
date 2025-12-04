@@ -1,5 +1,4 @@
 using UnityEngine;
-using Zenject;
 
 public class TileMergeSegmentTemplate
 {
@@ -13,8 +12,7 @@ public class TileMergeSegmentTemplate
     public MeshRenderer SegmentTemplateRenderer => _segmentTemplateRenderer;
     public Transform RootParent => _rootParent;
     public Vector3 SegmentLocalScale => _segmentLocalScale;
-
-    [Inject]
+    
     public TileMergeSegmentTemplate(TileStackView cellStackPrefab, Grid grid)
     {
         MeshRenderer prefabRenderer = cellStackPrefab != null

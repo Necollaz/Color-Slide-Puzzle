@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 
 public class TileSpawnMatchPlanner
 {
@@ -16,8 +15,7 @@ public class TileSpawnMatchPlanner
     private readonly HashSet<Color> _usefulTopColors = new HashSet<Color>();
     private readonly List<Color> _paletteBuffer = new List<Color>();
     private readonly List<Color> _usefulTopColorsList = new List<Color>();
-
-    [Inject]
+    
     public TileSpawnMatchPlanner(TileConfig tileConfig, GridCellsBuilder cellsBuilder, TileColorStatistics colorStatistics,
         TileSpawnUsefulTopColorsCollector usefulTopColorsCollector, TileColorRemainderSorter colorRemainderSorter,
         TileSpawnStackFromColorsBuilder stackFromColorsBuilder)
