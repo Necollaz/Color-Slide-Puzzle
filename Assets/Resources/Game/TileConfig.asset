@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54e73e2e004046b490e0803bef544b2a, type: 3}
+  m_Name: TileConfig
+  m_EditorClassIdentifier: 
+  _colors:
+  - {r: 0.19215688, g: 0.85098046, b: 0.11764707, a: 1}
+  - {r: 1, g: 0.121568635, b: 0.11764707, a: 0}
+  - {r: 0.42352945, g: 0.95294124, b: 1, a: 0}
+  - {r: 0.4433962, g: 0.4339845, b: 0.4245728, a: 0}
+  - {r: 0.96470594, g: 0.8117648, b: 0.23137257, a: 0}
+  - {r: 0.73333335, g: 0.19607845, b: 1, a: 0}
+  - {r: 0.20392159, g: 0.38823533, b: 0.9960785, a: 0}
+  _maxStackSize: 10
+  _minGeneratedStackSize: 3
+  _maxGeneratedStackSize: 8
+  _minClusterSize: 2
+  _maxClusterSize: 4
+  _minColorBlocksPerStack: 1
+  _maxColorBlocksPerStack: 3
+  _maxColorPickAttempts: 8
+  _minTilesPerColorBlock: 1
+  _minTilesPerColorSpawn: 3
+  _maxTilesPerColorSpawn: 9
+  _maxStackDistributionIterations: 64
+  _maxColorsPerSpawnStack: 3
+  _oneColorStackWeightPercent: 20
+  _twoColorsStackWeightPercent: 50
+  _threeColorsStackWeightPercent: 30
+  _xzScaleFactor: 0.9
+  _stackHeight: 0.3
+  _yOffset: 0.09
+  _spawnXzWorldSize: 0.5
+  _spawnStackWorldHeight: 1
+  _spawnYOffset: 0.05
+  _segmentHeight: 0.04
+  _segmentGap: 0.005
+  _tileClearEffectPrefab: {fileID: 5261469481925748125, guid: 85cbfda97736f714681d4fc2844323b5,
+    type: 3}
+  _stackClearEffectPrefab: {fileID: 198327332609706768, guid: 98497c01c529a9445a0e927162dbfd51,
+    type: 3}
+  _tileClearEffectPrewarmCount: 20
+  _stackClearEffectPrewarmCount: 5
