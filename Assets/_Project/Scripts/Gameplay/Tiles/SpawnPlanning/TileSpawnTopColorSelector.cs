@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 
 public class TileSpawnTopColorSelector
 {
@@ -14,8 +13,7 @@ public class TileSpawnTopColorSelector
     private readonly GridNeighborOffsetProvider _gridNeighborOffset;
 
     private readonly List<Color> _paletteBuffer = new List<Color>();
-
-    [Inject]
+    
     public TileSpawnTopColorSelector(Grid grid, GridCellsBuilder cellsBuilder, TileConfig tileConfig,
         TileColorStatistics colorStatistics, GridNeighborOffsetProvider gridNeighborOffset)
     {

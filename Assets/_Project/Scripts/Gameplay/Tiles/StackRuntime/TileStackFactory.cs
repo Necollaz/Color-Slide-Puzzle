@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 
 public class TileStackFactory
 {
@@ -15,24 +14,21 @@ public class TileStackFactory
     private readonly TileSpawnTopColorSelector _spawnTopColorSelector;
     private readonly TileColorStatistics _colorStatistics;
     private readonly GridCellsBuilder _cellsBuilder;
-    private readonly DiContainer _container;
-    
-    private readonly List<TileStackRoot> _spawnStackPool = new();
-    private readonly List<Color> _spawnStackColorsBuffer = new();
+
+    private readonly List<TileStackRoot> _spawnStackPool = new List<TileStackRoot>();
+    private readonly List<Color> _spawnStackColorsBuffer = new List<Color>();
     
     private Vector3 _gridWorldScale;
 
     private bool _isGridScaleCached;
-
-    [Inject]
-    public TileStackFactory(TileStackView cellStackPrefab, TileStackRoot spawnStackRootPrefab, DiContainer container, 
+    
+    public TileStackFactory(TileStackView cellStackPrefab, TileStackRoot spawnStackRootPrefab, 
         TileStackColorsGenerator colorsGenerator, TileConfig config, GridCellsBuilder cellsBuilder,
         TileSpawnMatchPlanner spawnMatchPlanner, TileSpawnTopColorSelector spawnTopColorSelector,
         TileColorStatistics colorStatistics)
     {
         _cellStackPrefab = cellStackPrefab;
         _spawnStackRootPrefab = spawnStackRootPrefab;
-        _container = container;
         _colorsGenerator = colorsGenerator;
         _config = config;
         _cellsBuilder = cellsBuilder;
@@ -49,7 +45,7 @@ public class TileStackFactory
         TileStackView stackView = cellView.GetComponentInChildren<TileStackView>(true);
 
         if (stackView == null)
-            stackView = _container.InstantiatePrefabForComponent<TileStackView>(_cellStackPrefab, cellView.transform);
+            stackView = Object.Instantiate(_cellStackPrefab, cellView.transform);
 
         stackView.gameObject.SetActive(true);
         stackView.transform.localPosition = Vector3.zero;
@@ -101,7 +97,7 @@ public class TileStackFactory
                 return root;
         }
 
-        TileStackRoot newRoot = _container.InstantiatePrefabForComponent<TileStackRoot>(_spawnStackRootPrefab);
+        TileStackRoot newRoot = Object.Instantiate(_spawnStackRootPrefab);
         _spawnStackPool.Add(newRoot);
 
         return newRoot;

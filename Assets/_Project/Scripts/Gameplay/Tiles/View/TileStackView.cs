@@ -1,19 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 
 public class TileStackView : MonoBehaviour
 {
     [SerializeField] private MeshRenderer _renderer;
+    [SerializeField] private TileConfig _config;
 
-    private TileConfig _config;
     private TileStackRuntime _runtime;
-
-    [Inject]
-    public void Construct(TileConfig config)
-    {
-        _config = config;
-    }
 
     public bool IsEmpty => _runtime == null || _runtime.IsEmpty;
     public int TilesCount => _runtime == null ? 0 : _runtime.TilesCount;

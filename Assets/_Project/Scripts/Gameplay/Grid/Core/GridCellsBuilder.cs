@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 
 public class GridCellsBuilder
 {
@@ -10,19 +9,16 @@ public class GridCellsBuilder
     
     private readonly Grid _grid;
     private readonly HexCellView _cellPrefab;
-    private readonly DiContainer _container;
 
-    private readonly Dictionary<Vector2Int, HexCellView> _cells = new();
-    private readonly List<HexCellView> _cellPool = new();
+    private readonly Dictionary<Vector2Int, HexCellView> _cells = new Dictionary<Vector2Int, HexCellView>();
+    private readonly List<HexCellView> _cellPool = new List<HexCellView>();
 
     private int _usedCellCount;
     
-    [Inject]
-    public GridCellsBuilder(Grid grid, HexCellView cellPrefab, DiContainer container)
+    public GridCellsBuilder(Grid grid, HexCellView cellPrefab)
     {
         _grid = grid;
         _cellPrefab = cellPrefab;
-        _container = container;
     }
 
     public IReadOnlyDictionary<Vector2Int, HexCellView> Cells => _cells;
@@ -52,11 +48,7 @@ public class GridCellsBuilder
             int radiusMax = Mathf.Min(radius, -i + radius);
 
             for (int j = radiusMin; j <= radiusMax; j++)
-            {
-                Vector2Int coordinates = new Vector2Int(i, j);
-                
-                InstantiateCell(coordinates);
-            }
+                InstantiateCell(new Vector2Int(i, j));
         }
     }
 
@@ -84,7 +76,7 @@ public class GridCellsBuilder
         }
         else
         {
-            cellView = _container.InstantiatePrefabForComponent<HexCellView>(_cellPrefab, _grid.transform);
+            cellView = Object.Instantiate(_cellPrefab, _grid.transform);
             _cellPool.Add(cellView);
         }
         

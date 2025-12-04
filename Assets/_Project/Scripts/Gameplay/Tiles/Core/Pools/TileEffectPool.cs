@@ -60,8 +60,8 @@ public class TileEffectPool
     private void OnGet(ParticleSystem effect)
     {
         effect.gameObject.SetActive(true);
-        effect.Clear(true);
-        effect.Play(true);
+        effect.Clear();
+        effect.Play();
     }
 
     private void OnRelease(ParticleSystem particleSystem)

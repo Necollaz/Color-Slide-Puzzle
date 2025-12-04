@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using Zenject;
 using DG.Tweening;
 
 public class TileStackMergeAnimator
@@ -24,8 +23,7 @@ public class TileStackMergeAnimator
     private readonly TileMergeColorApplier _colorApplier;
     private readonly TileMergePositionCalculator _positionCalculator;
     private readonly TileEffectsPlayer _effectsPlayer;
-
-    [Inject]
+    
     public TileStackMergeAnimator(TileMergeSegmentTemplate template, TileMergeSegmentPool segmentPool,
         TileMergeColorApplier colorApplier, TileMergePositionCalculator positionCalculator,
         TileEffectsPlayer effectsPlayer)

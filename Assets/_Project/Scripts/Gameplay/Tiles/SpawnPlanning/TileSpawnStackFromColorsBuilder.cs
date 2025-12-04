@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 
 public class TileSpawnStackFromColorsBuilder
 {
@@ -9,8 +8,7 @@ public class TileSpawnStackFromColorsBuilder
 
     private readonly TileConfig _tileConfig;
     private readonly TileColorStatistics _colorStatistics;
-
-    [Inject]
+    
     public TileSpawnStackFromColorsBuilder(TileConfig tileConfig, TileColorStatistics colorStatistics)
     {
         _tileConfig = tileConfig;
@@ -42,7 +40,7 @@ public class TileSpawnStackFromColorsBuilder
 
         int maxTilesPerColorSpawn = _tileConfig.MaxTilesPerColorSpawn;
 
-        List<(Color color, int count)> colorBlocks = new List<(Color color, int count)>(effectiveMaxDistinctColors);
+        List<TileColorBlock> colorBlocks = new List<TileColorBlock>();
 
         for (int index = 0; index < effectiveMaxDistinctColors; index++)
         {
@@ -86,7 +84,7 @@ public class TileSpawnStackFromColorsBuilder
             
             remainingColors--;
 
-            colorBlocks.Add((color, targetTilesForThisColor));
+            colorBlocks.Add(new TileColorBlock(color, targetTilesForThisColor));
         }
 
         int iterationsLeft = _tileConfig.MaxStackDistributionIterations;
@@ -99,9 +97,9 @@ public class TileSpawnStackFromColorsBuilder
 
             for (int index = 0; index < colorBlocks.Count && remainingTiles > 0; index++)
             {
-                (Color color, int count) block = colorBlocks[index];
+                TileColorBlock block = colorBlocks[index];
 
-                int canTake = _tileConfig.MaxTilesPerColorSpawn - block.count;
+                int canTake = _tileConfig.MaxTilesPerColorSpawn - block.Count;
 
                 if (canTake <= 0)
                     continue;
@@ -111,7 +109,7 @@ public class TileSpawnStackFromColorsBuilder
                 if (add <= 0)
                     continue;
 
-                block.count += add;
+                block.Count += add;
                 remainingTiles -= add;
                 colorBlocks[index] = block;
                 addedAny = true;
@@ -123,10 +121,10 @@ public class TileSpawnStackFromColorsBuilder
 
         for (int index = 0; index < colorBlocks.Count; index++)
         {
-            (Color color, int count) block = colorBlocks[index];
+            TileColorBlock block = colorBlocks[index];
 
-            for (int tileIndex = 0; tileIndex < block.count; tileIndex++)
-                resultColors.Add(block.color);
+            for (int tileIndex = 0; tileIndex < block.Count; tileIndex++)
+                resultColors.Add(block.Color);
         }
 
         return resultColors.Count > 0;

@@ -1,14 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 
 public class TileSpawnUsefulTopColorsCollector
 {
     private readonly Grid _grid;
     private readonly GridCellsBuilder _cellsBuilder;
     private readonly GridNeighborOffsetProvider _gridNeighborOffset;
-
-    [Inject]
+    
     public TileSpawnUsefulTopColorsCollector(Grid grid, GridCellsBuilder cellsBuilder, 
         GridNeighborOffsetProvider gridNeighborOffset)
     {

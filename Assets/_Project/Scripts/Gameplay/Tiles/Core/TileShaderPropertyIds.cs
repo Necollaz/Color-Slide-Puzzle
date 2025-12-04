@@ -2,15 +2,15 @@ using UnityEngine;
 
 public class TileShaderPropertyIds
 {
-    public const string BaseColorName = "_BaseColor";
-    public const string ColorName = "_Color";
+    private const string BASE_COLOR_NAME = "_BaseColor";
+    private const string COLOR_NAME = "_Color";
 
     public readonly int BaseColorId;
     public readonly int ColorId;
 
     public TileShaderPropertyIds()
     {
-        BaseColorId = Shader.PropertyToID(BaseColorName);
-        ColorId = Shader.PropertyToID(ColorName);
+        BaseColorId = Shader.PropertyToID(BASE_COLOR_NAME);
+        ColorId = Shader.PropertyToID(COLOR_NAME);
     }
 }

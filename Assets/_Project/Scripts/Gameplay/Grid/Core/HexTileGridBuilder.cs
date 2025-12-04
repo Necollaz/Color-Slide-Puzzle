@@ -1,14 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 
 public class HexTileGridBuilder
 {
     private readonly GridCellsBuilder _cellsBuilder;
     private readonly TileStackFieldGenerator _stackGenerator;
-
-    [Inject]
-    public HexTileGridBuilder(GridCellsBuilder cellsBuilder, TileStackFieldGenerator stackGenerator)
+    
+    public HexTileGridBuilder(GridCellsBuilder cellsBuilder, TileStackFieldGenerator stackGenerator = null)
     {
         _cellsBuilder = cellsBuilder;
         _stackGenerator = stackGenerator;
@@ -30,6 +28,7 @@ public class HexTileGridBuilder
         foreach (KeyValuePair<Vector2Int, HexCellView> pair in _cellsBuilder.Cells)
             pair.Value.SetVisible(true);
 
-        _stackGenerator.TryGenerateStacks(_cellsBuilder.Cells, config.OccupiedCellsCount);
+        if (_stackGenerator != null)
+            _stackGenerator.TryGenerateStacks(_cellsBuilder.Cells, config.OccupiedCellsCount);
     }
 }

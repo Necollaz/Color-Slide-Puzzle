@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 
 public class TileStackColorsGenerator
 {
@@ -8,11 +7,10 @@ public class TileStackColorsGenerator
     
     private readonly TileConfig _config;
     private readonly TileStackColorBlocksBuilder _colorBlocksBuilder;
-    
-    private readonly List<Color> _stackColorsBuffer = new();
-    private readonly List<Color> _distinctColorsBuffer = new();
 
-    [Inject]
+    private readonly List<Color> _stackColorsBuffer = new List<Color>();
+    private readonly List<Color> _distinctColorsBuffer = new List<Color>();
+    
     public TileStackColorsGenerator(TileConfig config, TileStackColorBlocksBuilder colorBlocksBuilder)
     {
         _config = config;

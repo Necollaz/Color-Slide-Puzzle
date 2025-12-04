@@ -1,12 +1,10 @@
 using UnityEngine;
-using Zenject;
 
 public class TileMergeColorApplier
 {
     private readonly TileShaderPropertyIds _shaderPropertyIds;
     private readonly MaterialPropertyBlock _propertyBlock = new MaterialPropertyBlock();
-
-    [Inject]
+    
     public TileMergeColorApplier(TileShaderPropertyIds shaderPropertyIds)
     {
         _shaderPropertyIds = shaderPropertyIds;

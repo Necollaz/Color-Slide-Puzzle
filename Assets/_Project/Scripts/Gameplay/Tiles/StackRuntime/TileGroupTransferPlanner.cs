@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject;
 
 public class TileGroupTransferPlanner
 {
@@ -9,14 +8,13 @@ public class TileGroupTransferPlanner
     private readonly GridCellsBuilder _cellsBuilder;
     private readonly TileStackInCellFinder _stackFinder;
 
-    private readonly Queue<HexCellView> _bfsQueue = new Queue<HexCellView>();
     private readonly Dictionary<HexCellView, HexCellView> _parents = new Dictionary<HexCellView, HexCellView>();
     private readonly Dictionary<HexCellView, int> _depths = new Dictionary<HexCellView, int>();
-    private readonly List<HexCellView> _leafBuffer = new List<HexCellView>();
     private readonly HashSet<HexCellView> _localVisited = new HashSet<HexCellView>();
     private readonly HashSet<HexCellView> _groupSet = new HashSet<HexCellView>();
-
-    [Inject]
+    private readonly Queue<HexCellView> _bfsQueue = new Queue<HexCellView>();
+    private readonly List<HexCellView> _leafBuffer = new List<HexCellView>();
+    
     public TileGroupTransferPlanner(Grid grid, GridNeighborOffsetProvider gridNeighborOffset, 
         GridCellsBuilder cellsBuilder, TileStackInCellFinder stackFinder)
     {
@@ -26,17 +24,16 @@ public class TileGroupTransferPlanner
         _stackFinder = stackFinder;
     }
 
-    public IEnumerable<(TileStackView source, TileStackView target, int chainStepIndex)> 
-        BuildTransferSteps(List<HexCellView> group, Color groupColor)
+    public IEnumerable<TileTransferStep> BuildTransferSteps(List<HexCellView> group, Color groupColor)
     {
         IReadOnlyDictionary<Vector2Int, HexCellView> cells = _cellsBuilder.Cells;
 
         if (cells == null || cells.Count == 0 || group == null || group.Count == 0)
             yield break;
-
+        
         HexCellView bestTargetCell = null;
         int bestMovableCount = -1;
-        
+
         for (int i = 0; i < group.Count; i++)
         {
             HexCellView cell = group[i];
@@ -56,7 +53,7 @@ public class TileGroupTransferPlanner
 
         if (bestTargetCell == null || bestMovableCount <= 0)
             yield break;
-        
+
         _parents.Clear();
         _depths.Clear();
         _leafBuffer.Clear();
@@ -83,7 +80,8 @@ public class TileGroupTransferPlanner
             {
                 Vector2Int neighborCoordinates = currentCoordinates + neighborOffsets[i];
 
-                if (!cells.TryGetValue(neighborCoordinates, out HexCellView neighborCell))
+                HexCellView neighborCell;
+                if (!cells.TryGetValue(neighborCoordinates, out neighborCell))
                     continue;
 
                 if (neighborCell == null)
@@ -96,11 +94,11 @@ public class TileGroupTransferPlanner
                     continue;
 
                 TileStackView neighborStack = _stackFinder.FindActiveStackInCell(neighborCell);
-
                 if (neighborStack == null)
                     continue;
 
-                if (!neighborStack.TryGetTopColor(out Color neighborTopColor) || neighborTopColor != groupColor)
+                Color neighborTopColor;
+                if (!neighborStack.TryGetTopColor(out neighborTopColor) || neighborTopColor != groupColor)
                     continue;
 
                 _localVisited.Add(neighborCell);
@@ -112,7 +110,7 @@ public class TileGroupTransferPlanner
         }
 
         int maxDepth = 0;
-
+        
         foreach (KeyValuePair<HexCellView, int> pair in _depths)
         {
             if (pair.Value > maxDepth)
@@ -124,10 +122,12 @@ public class TileGroupTransferPlanner
             HexCellView cell = pair.Key;
             int depth = pair.Value;
 
+            HexCellView parent;
+            
             if (depth != maxDepth)
                 continue;
 
-            if (!_parents.TryGetValue(cell, out HexCellView parent) || parent == null)
+            if (!_parents.TryGetValue(cell, out parent) || parent == null)
                 continue;
 
             _leafBuffer.Add(cell);
@@ -142,7 +142,9 @@ public class TileGroupTransferPlanner
         {
             HexCellView leafCell = _leafBuffer[i];
 
-            if (!_parents.TryGetValue(leafCell, out HexCellView parentCell) || parentCell == null)
+            HexCellView parentCell;
+            
+            if (!_parents.TryGetValue(leafCell, out parentCell) || parentCell == null)
                 continue;
 
             TileStackView sourceStack = _stackFinder.FindActiveStackInCell(leafCell);
@@ -152,12 +154,12 @@ public class TileGroupTransferPlanner
                 continue;
 
             int movableCount = sourceStack.CountTopTilesOfColor(groupColor);
-
+            
             if (movableCount <= 0)
                 continue;
 
-            yield return (sourceStack, targetStack, chainStepIndex);
-
+            yield return new TileTransferStep(sourceStack, targetStack, chainStepIndex);
+            
             chainStepIndex++;
         }
     }
