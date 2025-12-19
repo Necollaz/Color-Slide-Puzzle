@@ -24,27 +24,6 @@ public class GameplayEntry : MonoBehaviour
 
     private void Awake()
     {
-        Debug.Log("GameplayEntry.Awake: start init");
-        
-        if (_grid == null)
-        {
-            GameObject go = new GameObject("GridRuntime");
-            go.transform.SetParent(transform);
-            _grid = go.AddComponent<Grid>();
-        }
-
-        Debug.Log("_grid = " + (_grid != null));
-        Debug.Log("_cellPrefab = " + (_cellPrefab != null));
-        Debug.Log("_tileConfig = " + (_tileConfig != null));
-        Debug.Log("_gridDefinitionConfig = " + (_gridDefinitionConfig != null));
-
-        if (_grid == null || _cellPrefab == null || _tileConfig == null || _gridDefinitionConfig == null)
-        {
-            Debug.LogError("GameplayEntry: Required references missing");
-            enabled = false;
-            return;
-        }
-
         var neighborOffsets = new GridNeighborOffsetProvider();
         var cellSelector = new TileEmptyCellSelector();
         var inCellFinder = new TileStackInCellFinder();
@@ -59,50 +38,13 @@ public class GameplayEntry : MonoBehaviour
         var usefulCollector = new TileSpawnUsefulTopColorsCollector(_grid, cellBuilder, neighborOffsets);
         var stackFromColors = new TileSpawnStackFromColorsBuilder(_tileConfig, stats);
 
-        var spawnMatchPlanner = new TileSpawnMatchPlanner(
-            _tileConfig,
-            cellBuilder,
-            stats,
-            usefulCollector,
-            remainderSorter,
-            stackFromColors
-        );
+        var spawnMatchPlanner = new TileSpawnMatchPlanner(_tileConfig, cellBuilder, stats, usefulCollector, remainderSorter, stackFromColors);
+        var spawnTopColor = new TileSpawnTopColorSelector(_grid, cellBuilder, _tileConfig, stats, neighborOffsets);
 
-        var spawnTopColor = new TileSpawnTopColorSelector(
-            _grid,
-            cellBuilder,
-            _tileConfig,
-            stats,
-            neighborOffsets
-        );
+        _stackFactory = new TileStackFactory(_cellStackPrefab, _spawnStackRootPrefab, colorsGenerator, _tileConfig, cellBuilder, spawnMatchPlanner, spawnTopColor, stats);
 
-        _stackFactory = new TileStackFactory(
-            _cellStackPrefab,
-            _spawnStackRootPrefab,
-            colorsGenerator,
-            _tileConfig,
-            cellBuilder,
-            spawnMatchPlanner,
-            spawnTopColor,
-            stats
-        );
-
-        var clusters = new TileStackClusterBuilder(
-            _grid,
-            _stackFactory,
-            poolCleaner,
-            _tileConfig,
-            neighborOffsets,
-            listRandomizer
-        );
-
-        var fieldGenerator = new TileStackFieldGenerator(
-            cellSelector,
-            clusters,
-            _grid,
-            _tileConfig,
-            neighborOffsets
-        );
+        var clusters = new TileStackClusterBuilder(_grid, _stackFactory, poolCleaner, _tileConfig, neighborOffsets, listRandomizer);
+        var fieldGenerator = new TileStackFieldGenerator(cellSelector, clusters, _grid, _tileConfig, neighborOffsets);
 
         _gridBuilder = new HexTileGridBuilder(cellBuilder, fieldGenerator);
 
@@ -113,40 +55,17 @@ public class GameplayEntry : MonoBehaviour
         var posCalculator = new TileMergePositionCalculator(_tileConfig, segmentTemplate);
         var effectsPlayer = new TileEffectsPlayer(_grid, _tileConfig, segmentTemplate);
 
-        var mergeAnimator = new TileStackMergeAnimator(
-            segmentTemplate,
-            segmentPool,
-            colorApplier,
-            posCalculator,
-            effectsPlayer
-        );
+        var mergeAnimator = new TileStackMergeAnimator(segmentTemplate, segmentPool, colorApplier, posCalculator, effectsPlayer);
 
-        var transferPlanner = new TileGroupTransferPlanner(
-            _grid,
-            neighborOffsets,
-            cellBuilder,
-            inCellFinder
-        );
+        var transferPlanner = new TileGroupTransferPlanner(_grid, neighborOffsets, cellBuilder, inCellFinder);
+        var matchFinder = new TileMatchGroupFinder(_grid, cellBuilder, neighborOffsets, inCellFinder);
 
-        var matchFinder = new TileMatchGroupFinder(
-            _grid,
-            cellBuilder,
-            neighborOffsets,
-            inCellFinder
-        );
+        _matchResolver = new TileStackMatchResolver(cellBuilder, mergeAnimator, inCellFinder, matchFinder, transferPlanner);
 
-        _matchResolver = new TileStackMatchResolver(
-            cellBuilder,
-            mergeAnimator,
-            inCellFinder,
-            matchFinder,
-            transferPlanner
-        );
-
-        foreach (var sp in _spawnPoints)
+        foreach (var spawnPoint in _spawnPoints)
         {
-            if (sp != null)
-                sp.Construct(_stackFactory);
+            if (spawnPoint != null)
+                spawnPoint.Construct(_stackFactory);
         }
 
         if (_dragInput != null)
@@ -155,8 +74,6 @@ public class GameplayEntry : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log("GameplayEntry.Start: build grid");
-
         if (_gridBuilder == null)
         {
             Debug.LogError("GameplayEntry.Start: _gridBuilder is null, grid will not be built");
@@ -164,8 +81,6 @@ public class GameplayEntry : MonoBehaviour
         }
 
         _gridBuilder.Build(_gridDefinitionConfig);
-
-        Debug.Log("GameplayEntry.Start: grid built");
     }
 
     private void Reset()
